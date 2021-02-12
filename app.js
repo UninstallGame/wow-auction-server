@@ -37,13 +37,15 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 var settings_1 = require("./settings");
-var http = require('http');
 var axios_1 = require("axios");
+var http = require('http');
 var BASE_URL = 'https://eu.api.blizzard.com';
 var AUCTION = '/data/wow/connected-realm/1602/auctions';
 var PROFESSIONS = '/data/wow/profession/index';
 var PROFESSION_BY_INDEX = '/data/wow/profession/';
+var PROFESSION_SKILL = '/data/wow/profession/';
 var ITEM = '/data/wow/item/';
+var RECIPE = '/data/wow/recipe/';
 // https://develop.battle.net/documentation/world-of-warcraft/community-api-migration-status
 https: //us.api.blizzard.com/data/wow/connected-realm/1146/auctions?namespace=dynamic-us&locale=en_US&access_token=US63qljebf8E5YKxdf16wg1LGlNB5Vyd2g
  var accessToken = '';
@@ -61,20 +63,41 @@ server.listen(port, hostname, function () {
 run();
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var x, xx;
+        var x, data, map, i, id, professions, blacksmiting, rec;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, auth()];
                 case 1:
                     _a.sent();
-                    return [4 /*yield*/, getProfessions()];
+                    return [4 /*yield*/, getAuctionData()];
                 case 2:
                     x = _a.sent();
-                    console.log(x);
-                    return [4 /*yield*/, getItemInfo(171415)];
+                    data = x.data.auctions;
+                    map = new Map();
+                    for (i = 0; i <= data.length; i++) {
+                        id = 0;
+                        try {
+                            id = data[i].item.id;
+                        }
+                        catch (e) {
+                        }
+                        map.has(id)
+                            ? map.get(id).push(data[i])
+                            : map.set(id, [data[i]]);
+                    }
+                    return [4 /*yield*/, getProfessions()];
                 case 3:
-                    xx = _a.sent();
-                    console.log(xx);
+                    professions = _a.sent();
+                    console.log('professions', professions.data);
+                    return [4 /*yield*/, getProf(164, 2751)];
+                case 4:
+                    blacksmiting = _a.sent();
+                    console.log('profession', blacksmiting.data.categories.find(function (it) { return it.name === 'Специализированные доспехи'; }).recipes);
+                    return [4 /*yield*/, getRecipe(45589)];
+                case 5:
+                    rec = _a.sent();
+                    console.log('recipe', rec.data.reagents);
+                    console.log('price reagent', map.get(172437));
                     return [2 /*return*/];
             }
         });
@@ -113,7 +136,7 @@ function getAuctionData() {
 function getProfessions() {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
-            return [2 /*return*/, axios_1["default"].get("" + BASE_URL + PROFESSIONS + "'?namespace=static-eu&locale=ru_RU&access_token=" + accessToken)];
+            return [2 /*return*/, axios_1["default"].get("" + BASE_URL + PROFESSIONS + "?namespace=static-eu&locale=ru_RU&access_token=" + accessToken)];
         });
     });
 }
@@ -128,6 +151,21 @@ function getItemInfo(itemId) {
     return __awaiter(this, void 0, void 0, function () {
         return __generator(this, function (_a) {
             return [2 /*return*/, axios_1["default"].get("" + BASE_URL + ITEM + itemId + "?namespace=static-eu&locale=ru_RU&access_token=" + accessToken)];
+        });
+    });
+}
+function getProf(professionId, skillTierId) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            // {professionId}/skill-tier/{}'
+            return [2 /*return*/, axios_1["default"].get("" + BASE_URL + PROFESSION_SKILL + professionId + "/skill-tier/" + skillTierId + "?namespace=static-eu&locale=ru_RU&access_token=" + accessToken)];
+        });
+    });
+}
+function getRecipe(recipeId) {
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            return [2 /*return*/, axios_1["default"].get("" + BASE_URL + RECIPE + recipeId + "?namespace=static-eu&locale=ru_RU&access_token=" + accessToken)];
         });
     });
 }
