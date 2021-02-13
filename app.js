@@ -39,6 +39,7 @@ exports.__esModule = true;
 var settings_1 = require("./settings");
 var axios_1 = require("axios");
 var http = require('http');
+var fs = require('fs');
 var BASE_URL = 'https://eu.api.blizzard.com';
 var AUCTION = '/data/wow/connected-realm/1602/auctions';
 var PROFESSIONS = '/data/wow/profession/index';
@@ -63,7 +64,8 @@ server.listen(port, hostname, function () {
 run();
 function run() {
     return __awaiter(this, void 0, void 0, function () {
-        var x, data, map, i, id, professions, blacksmiting, rec;
+        var x, data, map, i, id, toJson, counter, keys, i, itemId, item, professions, blacksmiting, rec;
+        var _this = this;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0: return [4 /*yield*/, auth()];
@@ -85,16 +87,46 @@ function run() {
                             ? map.get(id).push(data[i])
                             : map.set(id, [data[i]]);
                     }
-                    return [4 /*yield*/, getProfessions()];
+                    toJson = {};
+                    counter = 0;
+                    keys = Array.from(map.keys());
+                    i = 0;
+                    _a.label = 3;
                 case 3:
+                    if (!(i <= keys.length)) return [3 /*break*/, 6];
+                    itemId = keys[i];
+                    toJson[itemId] = x.data;
+                    return [4 /*yield*/, getItemInfo(itemId)];
+                case 4:
+                    item = _a.sent();
+                    toJson[itemId] = item.data;
+                    console.log("log item " + itemId + " | " + i + " / " + keys.length);
+                    if (++counter === 100) {
+                        counter = 0;
+                        fs.writeFileSync('items.json', JSON.stringify(toJson));
+                    }
+                    _a.label = 5;
+                case 5:
+                    i++;
+                    return [3 /*break*/, 3];
+                case 6:
+                    fs.writeFileSync('items.json', JSON.stringify(data));
+                    console.log('uGame items done');
+                    map.forEach(function (it) { return __awaiter(_this, void 0, void 0, function () {
+                        return __generator(this, function (_a) {
+                            return [2 /*return*/];
+                        });
+                    }); });
+                    return [4 /*yield*/, getProfessions()];
+                case 7:
                     professions = _a.sent();
                     console.log('professions', professions.data);
                     return [4 /*yield*/, getProf(164, 2751)];
-                case 4:
+                case 8:
                     blacksmiting = _a.sent();
                     console.log('profession', blacksmiting.data.categories.find(function (it) { return it.name === 'Специализированные доспехи'; }).recipes);
                     return [4 /*yield*/, getRecipe(45589)];
-                case 5:
+                case 9:
                     rec = _a.sent();
                     console.log('recipe', rec.data.reagents);
                     console.log('price reagent', map.get(172437));
@@ -169,3 +201,8 @@ function getRecipe(recipeId) {
         });
     });
 }
+// fs.readFile('student.json', (err, data) => {
+//     if (err) throw err;
+//     let student = JSON.parse(data);
+//     console.log(student);
+// });

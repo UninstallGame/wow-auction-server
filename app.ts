@@ -3,6 +3,7 @@ import axios, {AxiosResponse} from "axios";
 import {IAuctionPosition} from "./types";
 
 const http = require('http');
+const fs = require('fs');
 
 const BASE_URL = 'https://eu.api.blizzard.com'
 const AUCTION = '/data/wow/connected-realm/1602/auctions'
@@ -49,7 +50,25 @@ async function run() {
             ? map.get(id).push(data[i])
             : map.set(id, [data[i]])
     }
-    // console.log('uGame done')
+
+    const toJson = {};
+    let counter = 0;
+    const keys = Array.from(map.keys());
+    for (let i = 0; i <= keys.length; i++) {
+        const itemId = keys[i];
+        toJson[itemId] = x.data;
+        const item = await getItemInfo(itemId)
+        toJson[itemId] = item.data
+        console.log(`log item ${itemId} | ${i} / ${keys.length}`)
+        if (++counter === 100) {
+            counter = 0;
+            fs.writeFileSync('items.json', JSON.stringify(toJson));
+        }
+    }
+    fs.writeFileSync('items.json', JSON.stringify(data));
+    console.log('uGame items done')
+    map.forEach(async it => {
+    })
 
     const professions = await getProfessions()
     console.log('professions', professions.data)
@@ -98,3 +117,10 @@ async function getProf(professionId: number, skillTierId: number) {
 async function getRecipe(recipeId: number) {
     return axios.get(`${BASE_URL}${RECIPE}${recipeId}?namespace=static-eu&locale=ru_RU&access_token=${accessToken}`)
 }
+
+
+// fs.readFile('student.json', (err, data) => {
+//     if (err) throw err;
+//     let student = JSON.parse(data);
+//     console.log(student);
+// });
