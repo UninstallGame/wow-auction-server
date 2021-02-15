@@ -132,6 +132,7 @@ export interface IBlizzardProfessions {
 }
 
 export interface IBlizzardProfessionDetail {
+    name: string;
     media: {
         key: {
             href: string
@@ -160,7 +161,7 @@ export interface IBlizzardProfessionSkillTier {
 
 export interface IBlizzardProfessionRecipe {
     id: number,
-    name: 'Метка ремесленника-новичка',
+    name: string,
     media: {
         key: {
             href: string
@@ -174,18 +175,19 @@ export interface IBlizzardProfessionRecipe {
         name: string,
         id: number
     },
-    reagents: {
-        reagent: {
-            key: {
-                href: string
-            },
-            name: string,
-            id: number
-        },
-        quantity: number
-    },
-    crafted_quantity: { value: 1 }
+    reagents: IBlizzardReagent[],
+    crafted_quantity: { value: number }
+}
 
+export interface IBlizzardReagent {
+    reagent: {
+        key: {
+            href: string
+        },
+        name: string,
+        id: number
+    },
+    quantity: number
 }
 
 export interface IBlizzardAsset {

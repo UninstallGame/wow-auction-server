@@ -27,8 +27,9 @@ function run() {
         console.log('uGame', token)
         itemService.updateToken(token);
         auctionService.updateToken(token);
-        professionService.updateToken(token);
-        professionService.start();
+        await professionService.updateToken(token);
+        const professions = await professionService.updateProfessions();
+        console.log('uGame', professions[0].categories[0].recipes[0].item)
         // const data = await auctionService.updateAuctionData();
 
         // itemService.get(31331)

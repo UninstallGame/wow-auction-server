@@ -1,14 +1,17 @@
-import axios, {AxiosResponse} from "axios";
+import axios from "axios";
 import {BASE_URL} from "../index";
-import Timeout = NodeJS.Timeout;
+import {IItem} from "types";
+import {Item} from "./item";
+import {getMedia} from "../pure";
 import {IBlizzardItem} from "blizzard-types";
+import Timeout = NodeJS.Timeout;
 
 const fs = require('fs');
 
 const ITEM = '/data/wow/item/'
 
 export class Items {
-    private hash = {};
+    private hash = <{ [key: number]: IItem }>{};
     private writeTimeout: Timeout;
     private accessToken: string | undefined
 
@@ -20,27 +23,31 @@ export class Items {
         this.accessToken = accessToken;
     }
 
-    public async get(id: number): Promise<IBlizzardItem> {
-        // @ts-ignore
+    public async get(id: number): Promise<IItem> {
         if (this.hash[id]) {
-            console.log('has item')
-            // @ts-ignore
+            console.log(`has item ${this.hash[id].data.name}`)
             return this.hash[id]
         }
-        let response
+        let item
         try {
-            response = await this.getItemInfo(id);
+            item = await this.getItemInfo(id);
         } catch (e) {
             console.log(`fail load item ${id}`)
             return;
         }
-        const item = response.data;
-        // @ts-ignore
-        this.hash[id] = item;
+
+        const assets = await getMedia(item, this.accessToken)
+        const newItem = new Item(item, assets);
+        this.hash[id] = newItem
         this.writeToJson();
-        return item;
+        return newItem;
     }
 
+    // todo
+    public updateAucInfo(itemId: number) {
+        this.hash[itemId].auctionData = [];
+        this.writeToJson();
+    }
 
     private writeToJson() {
         if (this.writeTimeout) clearTimeout(this.writeTimeout)
@@ -52,17 +59,18 @@ export class Items {
     }
 
     private readFromJson(): void {
-        const tmp = fs.readFileSync('dist/src/items/items.json');
-        this.hash = JSON.parse(tmp);
+        try {
+            const tmp = fs.readFileSync('dist/src/items/items.json');
+            this.hash = JSON.parse(tmp);
+        } catch (e) {
+            console.log('has no items.json')
+        }
     }
 
-    private async initHash() {
 
-    }
-
-
-    private async getItemInfo(itemId: number): Promise<AxiosResponse> {
-        console.log('load item')
-        return axios.get(`${BASE_URL}${ITEM}${itemId}?namespace=static-eu&locale=ru_RU&access_token=${this.accessToken}`)
+    private async getItemInfo(itemId: number): Promise<IBlizzardItem> {
+        const response = await axios.get(`${BASE_URL}${ITEM}${itemId}?namespace=static-eu&locale=ru_RU&access_token=${this.accessToken}`)
+        console.log(`item loaded ${response.data.name}`)
+        return response.data;
     }
 }
