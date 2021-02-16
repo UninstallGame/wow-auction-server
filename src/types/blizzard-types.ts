@@ -194,3 +194,12 @@ export interface IBlizzardAsset {
     "key": "icon",
     "value": "https://render-us.worldofwarcraft.com/icons/56/inv_sword_39.jpg"
 }
+
+export interface IBlizzardAuctionItem {
+    id: 771984692,
+    item: {id: number},
+    quantity: number,
+    time_left: AUCTION_TIME_LEFT
+    unit_price?: number,
+    buyout?: number,
+}

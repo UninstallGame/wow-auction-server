@@ -50,3 +50,14 @@ export interface IRecipe {
         count: number;
     }[]
 }
+
+export interface IAuctionData {
+    id: number;
+    auctionIds: number[];
+    allCount: number;
+    shortCount: number;
+    mediumCount: number;
+    longCount: number;
+    veryLongCount: number;
+    price: number;
+}

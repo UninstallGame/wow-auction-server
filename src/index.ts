@@ -4,8 +4,6 @@ import {Auction} from "./auction/auction";
 import {Server} from "./app/server";
 import {Professions} from "./professions/professions";
 
-const fs = require('fs');
-
 export const BASE_URL = 'https://eu.api.blizzard.com'
 //                    min  sec    ms
 const UPDATE_TIME_MS = 10 * 60 * 1000
@@ -21,28 +19,30 @@ serverService.create();
 run()
 
 function run() {
-    const cicle = async () => {
-        console.log('uGame run')
-        const token = await authService.getToken();
-        console.log('uGame', token)
-        itemService.updateToken(token);
-        auctionService.updateToken(token);
-        await professionService.updateToken(token);
-        const professions = await professionService.updateProfessions();
-        console.log('uGame', professions[0].categories[0].recipes[0].item)
-        // const data = await auctionService.updateAuctionData();
+    const cycle = async () => {
+        await updateToken();
+        const aucData = await auctionService.updateAuctionData();
+        aucData.forEach(it => {
+            console.log('uGame', it);
+        })
 
-        // itemService.get(31331)
-        // for (let i = 0; i <= data.auctions.length; i++) {
-        //     const item = data.auctions[i];
-        //     console.log(`item ${i} from ${data.auctions.length}`)
-        //     await itemService.get(item.item.id);
-        // }
+
+        // const professions = await professionService.updateProfessions();
+        // console.log('uGame', professions[0].categories[0].recipes[0].item)
     }
 
-    cicle();
+    cycle();
 
     setInterval(async () => {
         // cicle();
     }, UPDATE_TIME_MS)
+}
+
+async function updateToken(): Promise<void> {
+    console.log('uGame run')
+    const token = await authService.getToken();
+    console.log('uGame', token)
+    itemService.updateToken(token);
+    auctionService.updateToken(token);
+    await professionService.updateToken(token);
 }
